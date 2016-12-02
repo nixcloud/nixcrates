@@ -1,0 +1,9 @@
+[package]
+name = "cratesParser"
+version = "0.1.0"
+authors = ["Paul Seitz <paul.m.seitz@gmail.com>"]
+
+[dependencies]
+walkdir = "1"
+rustc-serialize = "0.3"
+rustache = "0.1"
