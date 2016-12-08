@@ -8,16 +8,17 @@ let
   innermost = self: {
     # always call the packages with the self dependencies
     callPackage = lib.callPackageWith self;
-    rustPackages = self;
+    allCrates = self;
     inherit buildCratesLib;
   };
-  buildCratesLib = {name, nameFix, version, hash, deps}:  
+  buildCratesLib = {name, version, hash, deps}:  
   let
     normalizeName = builtins.replaceStrings [ "-"] ["_"];
+    nameFix = normalizeName name;
     depsString = pkgs.lib.fold ( dep: str: "${str} --extern ${normalizeName dep.name}=${dep}/lib${normalizeName dep.name}.rlib") "" deps;
   in
     stdenv.mkDerivation {
-      name = name;#"${name}-${version}";
+      name = name;
       src = fetchurl {
         url = "https://crates.io/api/v1/crates/${name}/${version}/download";
         sha256 = hash;
@@ -44,6 +45,6 @@ let
       '';
     };
 
-   rustPackages = (import ./generated-crates.nix).rustPackages;
+   allCrates = (import ./generated-crates.nix).allCrates;
 
-in fix (extends rustPackages innermost)
+in fix (extends allCrates innermost)
