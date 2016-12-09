@@ -40,6 +40,13 @@ let
       CARGO_PKG_AUTHORS="";
       CARGO_PKG_DESCRIPTION="";
 
+      TARGET="x86_64-unknown-linux-gnu";
+      # if TARGET is not set we see this
+      #       libloading:
+      #       thread 'main' panicked at 'could not get target info: TargetUnset', src/libcore/result.rs:788
+      #       note: Run with `RUST_BACKTRACE=1` for a backtrace.
+      #       note: keeping build directory ‘/tmp/nix-build-libloading.drv-4’
+
       buildPhase = ''
 
         echo "${name} - ${depsString}"
@@ -68,14 +75,20 @@ let
           echo "------- build.rs found: $name ----------"
           ${pkgs.rustc}/bin/rustc build.rs --crate-name build_script_build --crate-type "bin" ${depsString} --cap-lints "allow"  -L dependency=mylibs --cfg "feature=\"default\"" --cfg "feature=\"std\"" -o build-script-build
           du -ha
+          du -ha $OUT_DIR/
+        
+          export PATH=''$PATH:${pkgs.rustc}/bin/
           ./build-script-build
+          echo "------- build.rs found: $name after build-script-build ----------"
+          du -ha
+          du -ha $OUT_DIR/
 #https://nopaste.me/view/b6633ea2
 
 #["rustc", "/home/joachim/.cargo/registry/src/github.com-1ecc6299db9ec823/target_build_utils-0.1.2/build.rs", "--crate-name", "build_script_build", "--crate-type", "bin", "-g", "--out-dir", "/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/build/target_build_utils-d8a53fa4b38f6bc1", "--emit=dep-info,link", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "--extern", "phf_codegen=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps/libphf_codegen-8c5dc4c06cc5b2f5.rlib", "--cap-lints", "allow"], [/* 106 vars */]) = 0
-          du -ha $OUT_DIR/
           echo "------- /build.rs found: $name ----------"
         fi
 
+        echo "About to use rustc to compile some lib - $name"
         ${pkgs.rustc}/bin/rustc --crate-type=lib -g ''${S}lib.rs  ${depsString} --crate-name ${nameFix} --cap-lints "allow"  -L dependency=mylibs --cfg "feature=\"default\"" --cfg "feature=\"std\"" --out-dir $OUT_DIR/
 
 
