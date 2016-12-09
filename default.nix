@@ -6,6 +6,8 @@ let
   normalizeName = builtins.replaceStrings [ "-"] ["_"];
   depsStringCalc = pkgs.lib.fold ( dep: str: "${str} --extern ${normalizeName dep.name}=${dep}/lib${normalizeName dep.name}.rlib") "";
 
+  cratesDeps = pkgs.lib.fold ( recursiveDeps : newCratesDeps: newCratesDeps ++ recursiveDeps.cratesDeps  );
+
   # symlinkCalc creates a mylibs folder and symlinks all the buildInputs's libraries from there for rustc to link them into the final binary
   symlinkCalc = pkgs.lib.fold ( dep: str: "${str} ln -s ${dep}/lib${normalizeName dep.name}.rlib mylibs/ \n") "mkdir mylibs\n ";
 in
@@ -16,12 +18,16 @@ in
     name = "nix-crates";
     src = ./src;
 
-    crates = depsStringCalc [ allCrates.walkdir allCrates.rustc-serialize allCrates.rustache ];
-    buildInputs = with allCrates; [ ]; 
+   
+    deps = [ allCrates.walkdir allCrates.rustc-serialize allCrates.rustache ];
+    crates = depsStringCalc deps;
+    crateDeps = cratesDeps [] deps;
+    buildInputs = with allCrates; crateDeps ++ deps; 
     buildPhase = ''
       ${symlinkCalc buildInputs}
-
-      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name nix_crates -L dependency=mylibs ${crates}
+      echo "Hello World"
+      du -a
+      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name nix_crates -L dependency=mylibs 
     '';
   };
 

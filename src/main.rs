@@ -21,7 +21,10 @@ use std::env;
 
 #[derive(RustcDecodable, RustcEncodable, Clone)]
 struct Dep{
-    name: String
+    name: String,
+    optional: bool,
+    kind: String,
+//    target: String,
 }
 #[derive(RustcDecodable, RustcEncodable, Clone)]
 struct MyCrate{
@@ -162,7 +165,9 @@ fn main() {
                 //create a string containing all deps
                 let mut dep_str = "".to_string();
                 for d in next_crate.deps {
-                    dep_str = dep_str + " " + &(d.name);
+                    if !d.optional && d.kind != "dev" { //&& !d.target.contains("windows"){
+                        dep_str = dep_str + " " + &(d.name);
+                    }
                 }
 
     
