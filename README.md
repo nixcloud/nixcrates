@@ -10,7 +10,7 @@ having only ''definite versions'' implies no dependency calculation, for instanc
 
     nix-shell -p cargoc crates
     git clone https://github.com/rust-lang/crates.io-index
-    cargo run crates.io-index nix-crates-index     
+    cargo run ../crates.io-index/ ./nix-crates-index/
 
 this will then create a 1:1 directory structure and nixify all crates.io JSON files.
 
