@@ -77,7 +77,7 @@ in
       echo "bar" > file2.txt
       echo "batz" > file3.txt 
 
-      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name main -L dependency=mylibs --extern tar=${allCrates.tar_0_4_9}/libtar.rlib
+      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name main -L dependency=mylibs --extern tar=${allCrates.tar}/libtar.rlib
 #       du -a
 #       /run/current-system/sw/bin/ldd ./main
       ./main

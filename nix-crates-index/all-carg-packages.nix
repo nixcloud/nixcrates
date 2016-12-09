@@ -34,7 +34,8 @@ let
       '';
       buildPhase = ''
 
-        echo "${name} - er${depsString}"
+        echo "${name} - ${depsString}"
+        echo "namefix ${nameFix}"
         ${symlinkCalc cratesDeps}
         du -ha
         echo "name ${name}"
@@ -46,7 +47,8 @@ let
         fi
 #        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs ${depsString} -o lib${nameFix}.rlib --crate-name ${nameFix} --cfg "feature=\"unsupported\"" --cfg "feature=\"default\""
 #        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib --crate-name ${nameFix} --cfg "feature=\"unsupported\"" --cfg "feature=\"default\"" -L dependency=mylibs
-        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib --crate-name ${nameFix} --cfg "feature=\"use_std\"" -L dependency=mylibs
+#        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib --crate-name ${nameFix} --cfg "feature=\"use_std\"" -L dependency=mylibs
+        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib ${depsString} --crate-name ${nameFix} --cfg "feature=\"use_std\"" -L dependency=mylibs
       '';
       # FIXME refactor this to use $lib and $src
       installPhase = ''
