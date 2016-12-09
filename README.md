@@ -16,17 +16,15 @@ this will then create a 1:1 directory structure and nixify all crates.io JSON fi
 
 # build examples
 
-this example works:
+example targets:
 
     nix-build default.nix -A getopts-example 
-
-all fail due to infinite recursion:
-
     nix-build default.nix -A tar-example 
     nix-build default.nix -A flate2-example 
-    nix-build default.nix -A nix-crates
     
+targets we are actually interested in:
 
-
-
-
+    nix-build default.nix -A allCrates.nom
+    nix-build default.nix -A allCrates.rustfbp
+    nix-build default.nix -A allCrates.capnp
+    nix-build default.nix -A nix-crates
