@@ -9,7 +9,7 @@ let
   cratesDeps = pkgs.lib.fold ( recursiveDeps : newCratesDeps: newCratesDeps ++ recursiveDeps.cratesDeps  );
 
   # symlinkCalc creates a mylibs folder and symlinks all the buildInputs's libraries from there for rustc to link them into the final binary
-  symlinkCalc = pkgs.lib.fold ( dep: str: "${str} ln -s ${dep}/lib${normalizeName dep.name}.rlib mylibs/ \n") "mkdir mylibs\n ";
+  symlinkCalc = pkgs.lib.fold ( dep: str: "${str} ln -sf ${dep}/lib${normalizeName dep.name}.rlib mylibs/ \n") "mkdir mylibs\n ";
 in
 
 {
@@ -27,8 +27,13 @@ in
       ${symlinkCalc buildInputs}
       echo "Hello World"
       du -a
-      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name nix_crates -L dependency=mylibs 
+      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" ${depsStringCalc deps} --emit=dep-info,link --crate-name nix_crates -L dependency=mylibs 
     '';
+    installPhase = ''
+      mkdir $out
+      cp -Rf . $out
+    '';
+
   };
 
   getopts-example = stdenv.mkDerivation rec {

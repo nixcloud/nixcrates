@@ -33,11 +33,14 @@ let
         cd ${name}-${version}
       '';
       buildPhase = ''
-
-        echo "${name} - ${depsString}"
         echo "namefix ${nameFix}"
+        echo "${name} - ${depsString}"
+
+        mkdir ./out
+        env OUT_DIR=./out
+        echo "printenv"
+        printenv
         ${symlinkCalc cratesDeps}
-        du -ha
         echo "name ${name}"
         # ugly hack since some creates use src/ and others don't! what a mess!
         if [ -d src ]; then
@@ -48,7 +51,8 @@ let
 #        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs ${depsString} -o lib${nameFix}.rlib --crate-name ${nameFix} --cfg "feature=\"unsupported\"" --cfg "feature=\"default\""
 #        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib --crate-name ${nameFix} --cfg "feature=\"unsupported\"" --cfg "feature=\"default\"" -L dependency=mylibs
 #        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib --crate-name ${nameFix} --cfg "feature=\"use_std\"" -L dependency=mylibs
-        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib ${depsString} --crate-name ${nameFix} --cfg "feature=\"use_std\"" -L dependency=mylibs
+#        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib ${depsString} --crate-name ${nameFix} --cfg "feature=\"alloc\"" --cfg "feature=\"use_std\"" --cfg "feature=\"unsupported\"" -L dependency=mylibs
+        ${pkgs.rustc}/bin/rustc --crate-type=lib ''${S}lib.rs -o lib${nameFix}.rlib ${depsString} --crate-name ${nameFix} --cfg "feature=\"std\"" --cfg "feature=\"unsupported\"" -L dependency=mylibs --cap-lints allow "--emit=dep-info,link"
       '';
       # FIXME refactor this to use $lib and $src
       installPhase = ''
