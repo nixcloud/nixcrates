@@ -12,12 +12,10 @@ let
   symlinkCalc = pkgs.lib.fold ( dep: str: "${str} ln -s ${dep}/lib${normalizeName dep.name}.rlib mylibs/ \n") "mkdir mylibs\n ";
 in
 
-{
-
+rec {
   nix-crates = stdenv.mkDerivation rec {
     name = "nix-crates";
     src = ./src;
-
    
     deps = [ allCrates.walkdir allCrates.rustc-serialize allCrates.rustache ];
     crates = depsStringCalc deps;
@@ -41,7 +39,9 @@ in
     buildPhase = ''
       ${rustc}/bin/rustc $src/main.rs ${depsString}
       ./main 
-      exit 1
+    '';
+    installPhase=''
+      mkdir $out
     '';
   };
 
@@ -87,9 +87,23 @@ in
       else
         echo "FAIL: not working!"
       fi
-      exit 1
+    '';
+    installPhase=''
+      mkdir $out
     '';
   };
   # with this you can do: ix-build -A allCrates.getopts to compile single dependencies
   inherit allCrates;
+
+  allTargets = stdenv.mkDerivation rec {
+    name="allTargets";    
+    version="1";
+    buildInputs = with allCrates; [ nom capnp regex json sqlite3 tiny_http tar-example getopts-example ]; # rustfbp 
+    src = ./.;
+    buildPhase=''
+    '';
+    installPhase=''
+      mkdir $out
+    '';
+  };
 }
