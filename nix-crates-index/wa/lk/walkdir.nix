@@ -77,5 +77,5 @@
     name = "walkdir";
     version = "1.0.3";
     hash = "dd7c16466ecc507c7cb5988db03e6eab4aaeab89a5c37a29251fcfd3ac9b7afe";
-    deps = with allCrates; [ winapi kernel32-sys ];
+    deps = with allCrates; [ ];
   };}
