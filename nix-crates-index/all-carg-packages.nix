@@ -1,36 +1,5 @@
 {pkgs, stdenv, fetchurl} :
 
-#  Downloading rust-sqlite v0.3.0
-#  Downloading rustfbp v0.3.21
-#  Downloading libc v0.2.18
-#  Downloading enum_primitive v0.1.0
-#  Downloading time v0.1.35
-#  Downloading bitflags v0.1.1
-#  Downloading num v0.1.36
-#  Downloading num-iter v0.1.32
-#  Downloading num-integer v0.1.32
-#  Downloading num-traits v0.1.36
-#  Downloading kernel32-sys v0.2.2
-#  Downloading winapi v0.2.8
-#  Downloading winapi-build v0.1.1
-#  Downloading threadpool v1.3.2
-#  Downloading libloading v0.2.4
-#  Downloading capnp v0.7.5
-#  Downloading lazy_static v0.2.2
-#  Downloading target_build_utils v0.1.2
-#  Downloading phf v0.7.20
-#  Downloading serde_json v0.8.4
-#  Downloading phf_shared v0.7.20
-#  Downloading dtoa v0.2.2
-#  Downloading serde v0.8.19
-#  Downloading itoa v0.1.1
-#  Downloading phf_codegen v0.7.20
-#  Downloading phf_generator v0.7.20
-#  Downloading rand v0.3.15
-#  Downloading byteorder v0.4.2
-
-
-
 let
   lib = stdenv.lib;
   inherit (lib) fix extends callPackageWith;
@@ -122,7 +91,9 @@ let
 
         if [ -f "''${S}lib.rs" ]; then
           echo "About to use rustc to compile some lib - $name"
-          ${pkgs.rustc}/bin/rustc --crate-type=lib -g ''${S}lib.rs  ${depsString} --crate-name ${nameFix} --cap-lints "allow"  -L dependency=mylibs   --out-dir $OUT_DIR/
+
+          # FIXME maybe different crates want different compiler features like --cfg "feature=\"default\"" --cfg "feature=\"std\""'  but this isn't implemented yet in nixcrates
+          ${pkgs.rustc}/bin/rustc --crate-type=lib -g ''${S}lib.rs  ${depsString} --crate-name ${nameFix} --cap-lints "allow"  -L dependency=mylibs   --out-dir $OUT_DIR/ --cfg "feature=\"default\"" --cfg "feature=\"std\""
         else
           echo "ERROR: not found lib.rs, just skipping which is wrong. I'm not exiting now but this won't work!"
         fi
@@ -176,6 +147,8 @@ let
 #         cp -Rf . $out
         if [ -f "''${S}lib.rs" ]; then
           cp -R $OUT_DIR/* $out
+        else
+          echo "ERROR: not found lib.rs, just skipping which is wrong. I'm not exiting now but this won't work!"
         fi
       '';
     };

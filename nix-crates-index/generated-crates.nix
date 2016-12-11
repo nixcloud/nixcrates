@@ -13760,7 +13760,7 @@
     "all__serde_xml" = self.callPackage ./se/rd/serde_xml.nix { };
     "serde_xml" = all__serde_xml."serde_xml_0_9_1";
     "all__serde" = self.callPackage ./se/rd/serde.nix { };
-    "serde" = all__serde."serde_0_8_19";
+    "serde" = all__serde."serde_0_7_19";
     "all__serde_derive" = self.callPackage ./se/rd/serde_derive.nix { };
     "serde_derive" = all__serde_derive."serde_derive_0_8_19";
     "all__serde_utils" = self.callPackage ./se/rd/serde_utils.nix { };
