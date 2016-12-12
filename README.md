@@ -28,3 +28,11 @@ targets we are actually interested in:
     nix-build default.nix -A allCrates.rustfbp
     nix-build default.nix -A allCrates.capnp
     nix-build default.nix -A nix-crates
+
+# todos
+
+* write better documentation
+* fix missing libcore in rustNightly
+* make these work:
+  * `rustfbp`
+  * `rusqlite` (ATM it think it does cross-compiles)
