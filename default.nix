@@ -95,32 +95,10 @@ rec {
   # with this you can do: ix-build -A allCrates.getopts to compile single dependencies
   inherit allCrates;
 
-# rustfbp 0.3.21 dependencies using cargo
-#  Downloading rustfbp v0.3.21
-#  Downloading threadpool v1.3.2
-#  Downloading capnp v0.7.5
-#  Downloading libloading v0.2.4
-#  Downloading byteorder v0.4.2
-#  Downloading lazy_static v0.2.2
-#  Downloading target_build_utils v0.1.2
-#  Downloading phf v0.7.20
-#  Downloading serde_json v0.8.4
-#  Downloading phf_shared v0.7.20
-#  Downloading serde v0.8.19
-#  Downloading itoa v0.1.1
-#  Downloading dtoa v0.2.2
-#  Downloading num-traits v0.1.36
-#  Downloading phf_codegen v0.7.20
-#  Downloading phf_generator v0.7.20
-#  Downloading rand v0.3.15
-#  Downloading libc v0.2.18
-
-
-
   allTargets = stdenv.mkDerivation rec {
     name="allTargets";    
     version="1";
-    buildInputs = with allCrates; [ nom capnp regex json sqlite3 tiny_http tar-example getopts-example ]; # rustfbp 
+    buildInputs = with allCrates; [ nom capnp regex json tiny_http tar-example getopts-example rustfbp rusqlite ];
     src = ./.;
     buildPhase=''
     '';

@@ -95,7 +95,7 @@ let
           echo "About to use rustc to compile some lib - $name"
 
           # FIXME maybe different crates want different compiler features like --cfg "feature=\"default\"" --cfg "feature=\"std\""'  but this isn't implemented yet in nixcrates
-          ${pkgs.rustc}/bin/rustc --crate-type=lib -g ''${S}lib.rs  ${depsString} --crate-name ${nameFix}   -L dependency=mylibs -L dependency=${pkgs.rustc}/   --out-dir $OUT_DIR/ #--cfg "feature=\"default\"" --cfg "feature=\"std\""
+          ${pkgs.rustc}/bin/rustc --crate-type=lib -g ''${S}lib.rs  ${depsString} --crate-name ${nameFix}   -L dependency=mylibs -L dependency=${pkgs.rustc}/   --out-dir $OUT_DIR/ --cfg "feature=\"default\"" --cfg "feature=\"std\""
         else
           echo "ERROR: not found lib.rs, just skipping which is wrong. I'm not exiting now but this won't work!"
         fi
