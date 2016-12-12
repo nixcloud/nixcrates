@@ -9,12 +9,12 @@ let
   cratesDeps = pkgs.lib.fold ( recursiveDeps : newCratesDeps: newCratesDeps ++ recursiveDeps.cratesDeps  );
 
   # symlinkCalc creates a mylibs folder and symlinks all the buildInputs's libraries from there for rustc to link them into the final binary
-  symlinkCalc = pkgs.lib.fold ( dep: str: "${str} ln -s ${dep}/lib${normalizeName dep.name}.rlib mylibs/ \n") "mkdir mylibs\n ";
+  symlinkCalc = pkgs.lib.fold ( dep: str: "${str} ln -fs ${dep}/lib${normalizeName dep.name}.rlib mylibs/ \n") "mkdir mylibs\n ";
 in
 
 rec {
-  nix-crates = stdenv.mkDerivation rec {
-    name = "nix-crates";
+  nixcrates = stdenv.mkDerivation rec {
+    name = "nixcrates";
     src = ./src;
    
     deps = [ allCrates.walkdir allCrates.rustc-serialize allCrates.rustache ];
@@ -23,9 +23,12 @@ rec {
     buildInputs = with allCrates; crateDeps ++ deps; 
     buildPhase = ''
       ${symlinkCalc buildInputs}
-      echo "Hello World"
       du -a
-      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name nix_crates -L dependency=mylibs 
+      ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name nixcrates -L dependency=mylibs ${depsStringCalc deps}
+    '';
+    installPhase = ''
+      mkdir -p $out/bin
+      cp nixcrates $out/bin
     '';
   };
 
@@ -98,7 +101,7 @@ rec {
   allTargets = stdenv.mkDerivation rec {
     name="allTargets";    
     version="1";
-    buildInputs = with allCrates; [ nom capnp regex json tiny_http tar-example getopts-example rustfbp rusqlite ];
+    buildInputs = with allCrates; [ nixcrates nom capnp regex json tiny_http tar-example getopts-example rustfbp rusqlite ];
     src = ./.;
     buildPhase=''
     '';
