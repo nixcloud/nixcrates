@@ -201,25 +201,43 @@ fn main() {
                             dep_str = dep_str + " " + &(d.name);
                             continue;
                         }
-                        let split = d.split(&['.'][..]).collect() {
+                        let mut x: Vec<&str> = d.req.split(".").collect(); 
+                        /*{
                             Ok (x) => x,
                             Err(_) => { 
                                 //Cant resolve use newest version
                                 dep_str = dep_str + " " + &(d.name);
                                 continue;
                             },
-                        };
+                        };*/
 
+                        if x.len() > 3 {
+                            //Cant resolve use newest version
+                            dep_str = dep_str + " " + &(d.name);
+                            continue;
+                        }
                         if d.req.starts_with("~") {
-                            
+                            if x.len() == 1 {
+                                dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("~");
+                            }else {
+                                dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("~") + "_" + x[1];
+                            }
                         }else if d.req.starts_with("^") {
+                            dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("^");
+                            x.remove(0);                            
+                            for i in x {
+                                dep_str = dep_str + "_" + i;
+                                if i != "0" {
+                                    break;
+                                }
+                            }
 
                         }else {
-                            if x.len > 3 {
+                            if x.len() > 3 {
                                 //Cant resolve use newest version
                                 dep_str = dep_str + " " + &(d.name);
                             }else{
-                                dep_str = dep_str + " All__" + &(d.name) + "." +  &(d.name);
+                                dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name);
                                 for i in x {
                                     dep_str = dep_str + "_" + i;
                                 }
