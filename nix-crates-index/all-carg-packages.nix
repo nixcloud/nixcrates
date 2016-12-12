@@ -155,6 +155,13 @@ let
       '';
     };
 
-   allCrates = (import ./generated-crates.nix).allCrates;
+   allCrates = self: super: lib.recursiveUpdate ((import ./generated-crates.nix).allCrates super self)  {
+      all__kernel32-sys.kernel32-sys_0_2 = buildCratesLib {
+        name = "kernel32-sys";
+        version = "0.0.12";
+        hash = "0744c511c4c0c047ec038df78ce924eb7f7d136082fd7e9beb1e7a95e986c601";
+        deps = [ self.winapi ];
+      };
+    };
 
 in fix (extends allCrates innermost)

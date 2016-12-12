@@ -103,7 +103,7 @@ rec {
   allTargets = stdenv.mkDerivation rec {
     name="allTargets";    
     version="1";
-    buildInputs = with allCrates; [ nom capnp regex json tiny_http tar-example getopts-example rustfbp rusqlite ];
+    buildInputs = with allCrates; [ nom capnp regex json tiny_http tar-example getopts-example rustfbp ];
     src = ./.;
     buildPhase=''
     '';
