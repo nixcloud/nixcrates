@@ -87,7 +87,6 @@ let
           du -ha
           du -ha $OUT_DIR/
 
-#["rustc", "/home/joachim/.cargo/registry/src/github.com-1ecc6299db9ec823/target_build_utils-0.1.2/build.rs", "--crate-name", "build_script_build", "--crate-type", "bin", "-g", "--out-dir", "/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/build/target_build_utils-d8a53fa4b38f6bc1", "--emit=dep-info,link", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "--extern", "phf_codegen=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps/libphf_codegen-8c5dc4c06cc5b2f5.rlib", "--cap-lints", "allow"], [/* 106 vars */]) = 0
           echo "------- /build.rs found: $name ----------"
         fi
 
@@ -99,45 +98,6 @@ let
         else
           echo "ERROR: not found lib.rs, just skipping which is wrong. I'm not exiting now but this won't work!"
         fi
-
-#36[pid  1128] execve("/nix/store/fff3jbf9vbqhmf6qjrmzhliq516x7yrf-rustc-1.11.0/bin/rustc", ["rustc", "/home/joachim/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.19/src/lib.rs", "--crate-name", "serde", "--crate-type", "lib", "-g", "--cfg", "feature=\"default\"", "--cfg", "feature=\"std\"", "-C", "metadata=97f01bf227222121", "-C", "extra-filename=-97f01bf227222121", "--out-dir", "/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "--emit=dep-info,link", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "--cap-lints", "allow"], [/* 105 vars */] <unfinished ...>
-# 
-# {
-#   "name": "serde",
-#   "vers": "0.8.19",
-#   "deps": [
-#     {
-#       "name": "clippy",
-#       "req": "0.*",
-#       "features": [],
-#       "optional": true,
-#       "default_features": true,
-#       "target": null,
-#       "kind": "normal"
-#     }
-#   ],
-#   "cksum": "58a19c0871c298847e6b68318484685cd51fa5478c0c905095647540031356e5",
-#   "features": {
-#     "std": [],
-#     "alloc": [
-#       "unstable"
-#     ],
-#     "unstable-testing": [
-#       "clippy",
-#       "unstable",
-#       "std"
-#     ],
-#     "unstable": [],
-#     "default": [
-#       "std"
-#     ],
-#     "collections": [
-#       "alloc"
-#     ]
-#   },
-#   "yanked": false
-# }
-
 
       '';
       # FIXME refactor this to use $lib and $src

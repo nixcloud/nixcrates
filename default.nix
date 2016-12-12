@@ -95,7 +95,7 @@ rec {
       mkdir $out
     '';
   };
-  # with this you can do: ix-build -A allCrates.getopts to compile single dependencies
+  # with this you can do: nix-build -A allCrates.getopts to compile single dependencies
   inherit allCrates;
 
   allTargets = stdenv.mkDerivation rec {
