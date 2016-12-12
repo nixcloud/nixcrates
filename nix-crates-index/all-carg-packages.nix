@@ -27,18 +27,19 @@ let
         url = "https://crates.io/api/v1/crates/${name}/${version}/download";
         sha256 = hash;
       };
+
       unpackPhase = ''
         tar xvzf $src
         # FIXME will fail for packages with names containing a '-' when they are replaced by '_'
         if [ "${name}" == "sqlite3" ]; then
-          echo "fluxiiiiiii"
           cd rust-sqlite-0.3.0
-
-          #exit 1
         else
           cd ${name}-${version}
         fi
       '';
+      # hack for rusqlite
+      SQLITE3_LIB_DIR="${pkgs.openssl}/lib";
+      buildInputs = [ pkgs.openssl pkgs.pkgconfig pkgs.sqlite ];
 
       # init env variable
       OUT_DIR="OUT_DIR is not set properly, please fix the nix expression in question..."; 
@@ -49,6 +50,7 @@ let
       CARGO_PKG_HOMEPAGE="";
       CARGO_PKG_AUTHORS="";
       CARGO_PKG_DESCRIPTION="";
+      PKG_CONFIG_ALLOW_CROSS=1;
 
       # if TARGET is not set we see this
       #       libloading:
@@ -58,7 +60,6 @@ let
       TARGET="x86_64-unknown-linux-gnu";
 
       buildPhase = ''
-
         echo "${name} - ${depsString}"
         echo "namefix ${nameFix}"
         export OUT_DIR=$(mktemp -d --tmpdir nix-output.XXXXXX)
@@ -72,6 +73,7 @@ let
         else
           S=""
         fi
+
         # if a rust build script is around we do strange things!
         if [ -f "build.rs" ]; then
           echo "------- build.rs found: $name ----------"
@@ -93,7 +95,7 @@ let
           echo "About to use rustc to compile some lib - $name"
 
           # FIXME maybe different crates want different compiler features like --cfg "feature=\"default\"" --cfg "feature=\"std\""'  but this isn't implemented yet in nixcrates
-          ${pkgs.rustc}/bin/rustc --crate-type=lib -g ''${S}lib.rs  ${depsString} --crate-name ${nameFix} --cap-lints "allow"  -L dependency=mylibs   --out-dir $OUT_DIR/ --cfg "feature=\"default\"" --cfg "feature=\"std\""
+          ${pkgs.rustc}/bin/rustc --crate-type=lib -g ''${S}lib.rs  ${depsString} --crate-name ${nameFix}   -L dependency=mylibs -L dependency=${pkgs.rustc}/   --out-dir $OUT_DIR/ #--cfg "feature=\"default\"" --cfg "feature=\"std\""
         else
           echo "ERROR: not found lib.rs, just skipping which is wrong. I'm not exiting now but this won't work!"
         fi

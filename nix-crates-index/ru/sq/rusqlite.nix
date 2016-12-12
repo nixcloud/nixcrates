@@ -155,5 +155,6 @@
     name = "rusqlite";
     version = "0.7.3";
     hash = "e9b3854687228334d8a579cd2f666ddd7fb46a5f68ac0460da2898394c4679d2";
-    deps = with allCrates; [ time lru-cache bitflags libc libsqlite3-sys ];
+    deps = with allCrates; [ pkg-config time lru-cache bitflags libc libsqlite3-sys ];
+
   };}
