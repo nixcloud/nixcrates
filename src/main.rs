@@ -19,8 +19,6 @@ use std::collections::BTreeMap;
 
 use std::env;
 
-extern crate serde_json;
-
 
 #[derive(Clone)]
 struct Dep{

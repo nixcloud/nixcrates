@@ -7,4 +7,3 @@ authors = ["Paul Seitz <paul.m.seitz@gmail.com>"]
 walkdir = "1"
 rustc-serialize = "0.3"
 rustache = "0.1"
-serde_json = "0.8.4"
