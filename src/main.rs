@@ -2,7 +2,7 @@ extern crate rustache;
 use rustache::{HashBuilder, Render};
 
 extern crate rustc_serialize;
-use rustc_serialize::json;
+use rustc_serialize::{json , Decodable, Decoder};
 
 extern crate walkdir;
 use walkdir::{DirEntry, WalkDir, WalkDirIterator};
@@ -19,14 +19,39 @@ use std::collections::BTreeMap;
 
 use std::env;
 
-#[derive(RustcDecodable, RustcEncodable, Clone)]
+extern crate serde_json;
+
+
+#[derive(Clone)]
 struct Dep{
     name: String,
     optional: bool,
     kind: String,
-//    target: String,
+    req: String,
+    target: String,
 }
-#[derive(RustcDecodable, RustcEncodable, Clone)]
+
+
+impl Decodable for Dep {
+    fn decode<D: Decoder>(d: &mut D) -> Result<Dep, D::Error> {
+        d.read_struct("Dep", 5, |d| {
+            let name = try!(d.read_struct_field("name", 0, |d| { d.read_str() }));
+            let optional = try!(d.read_struct_field("optional", 1, |d| { d.read_bool() }));
+            let kind = try!(d.read_struct_field("kind", 2, |d| { d.read_str() }));
+            let req = try!(d.read_struct_field("req", 3, |d| { d.read_str() }));
+
+            let target = match d.read_struct_field("target", 4, |d| { d.read_nil() }){
+                Ok(opt) => "".to_string(),
+                Err(_) => try!(d.read_struct_field("target", 4, |d| { d.read_str() }))
+            };
+
+            let ret = Dep{name: name, optional: optional, kind: kind, target: target, req: req };
+            return Ok(ret);
+        })
+    }
+}
+
+#[derive(RustcDecodable, Clone)]
 struct MyCrate{
     name: String,
     vers: String,
@@ -125,9 +150,10 @@ fn main() {
             //convert all crates to nix
             for line in reader.lines(){
                 let l = line.unwrap();
+
                 let mut next_crate: MyCrate = match json::decode(&l){
                     Ok(x) => x,
-                    Err(_) => continue,
+                    Err(err) => continue,
                 };
 
                 if next_crate.vers.contains("-"){
@@ -165,8 +191,40 @@ fn main() {
                 //create a string containing all deps
                 let mut dep_str = "".to_string();
                 for d in next_crate.deps {
-                    if !d.optional && d.kind != "dev" { //&& !d.target.contains("windows"){
-                        dep_str = dep_str + " " + &(d.name);
+                    //FIXME this breaks things for windows ans macos
+                    if !d.optional && d.kind != "dev" && !d.target.contains("windows") && !d.target.contains("macos"){
+
+//                    dep_str = dep_str + " " + &(d.name);
+
+                        if d.req.contains("<") || d.req.contains("=") || d.req.contains(">") || d.req.contains("*"){                     
+                            //Cant resolve use newest version
+                            dep_str = dep_str + " " + &(d.name);
+                            continue;
+                        }
+                        let split = d.split(&['.'][..]).collect() {
+                            Ok (x) => x,
+                            Err(_) => { 
+                                //Cant resolve use newest version
+                                dep_str = dep_str + " " + &(d.name);
+                                continue;
+                            },
+                        };
+
+                        if d.req.starts_with("~") {
+                            
+                        }else if d.req.starts_with("^") {
+
+                        }else {
+                            if x.len > 3 {
+                                //Cant resolve use newest version
+                                dep_str = dep_str + " " + &(d.name);
+                            }else{
+                                dep_str = dep_str + " All__" + &(d.name) + "." +  &(d.name);
+                                for i in x {
+                                    dep_str = dep_str + "_" + i;
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -194,12 +252,14 @@ fn main() {
                     let smal_version = "_".to_string() + &prev_version[0].to_string() + "_" + &prev_version[1].to_string();
                     let package_name = prev.name.clone() + &smal_version;
 //                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
+                    write!(buffer, "\n  \"{}\" = \"{}\";",  package_name, prev.name.clone() + &full_version);
                 }
                 
                 if prev_version[0] < version[0] {
                     let smal_version = "_".to_string() + &prev_version[0].to_string();
                     let package_name = prev.name.clone() + &smal_version;
 //                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
+                    write!(buffer, "\n  \"{}\" = \"{}\";",  package_name, prev.name.clone() + &full_version);
                 }
 
                 prev_version = version.clone();
@@ -211,9 +271,11 @@ fn main() {
             let smal_version = "_".to_string() + &prev_version[0].to_string() + "_" + &prev_version[1].to_string();
             let package_name = prev.name.clone() + &smal_version;
 //            write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
+            write!(buffer, "\n  \"{}\" = \"{}\";",  package_name, prev.name.clone() + &full_version);
             let smal_version = "_".to_string() + &prev_version[0].to_string();
             let package_name = prev.name.clone() + &smal_version;
 //            write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
+            write!(buffer, "\n  \"{}\" = \"{}\";",  package_name, prev.name.clone() + &full_version);
 
             write!(packages, "\n    \"{}\" = all__{}.\"{}\";",  prev.name.clone(), name, prev.name.clone() + &full_version);
 
