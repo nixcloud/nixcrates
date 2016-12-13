@@ -162,6 +162,12 @@ let
         hash = "0744c511c4c0c047ec038df78ce924eb7f7d136082fd7e9beb1e7a95e986c601";
         deps = [ self.winapi ];
       };
+      rusqlite = buildCratesLib {
+        name = "rusqlite";
+        version = "0.7.3";
+        hash = "e9b3854687228334d8a579cd2f666ddd7fb46a5f68ac0460da2898394c4679d2";
+        deps = with self; [  all__time.time_0_1 all__lru-cache.lru-cache_0_0_7 all__bitflags.bitflags_0_7 all__libc.libc_0_2 all__libsqlite3-sys.libsqlite3-sys_0_5 pkg-config];
+      };
     };
 
 in fix (extends allCrates innermost)
