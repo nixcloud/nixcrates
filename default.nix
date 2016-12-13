@@ -23,7 +23,7 @@ rec {
     buildInputs = with allCrates; crateDeps ++ deps; 
     buildPhase = ''
       ${symlinkCalc buildInputs}
-      du -a
+#       du -a
       ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name nixcrates -L dependency=mylibs ${depsStringCalc deps}
     '';
     installPhase = ''
@@ -58,9 +58,9 @@ rec {
 
     buildPhase = ''
       ${symlinkCalc buildInputs}
-      du -a mylibs
-      ls -lathr mylibs
-      echo ${depsString}
+#       du -a mylibs
+#       ls -lathr mylibs
+#       echo ${depsString}
 # [pid 14162] execve("/nix/store/fff3jbf9vbqhmf6qjrmzhliq516x7yrf-rustc-1.11.0/bin/rustc", ["rustc", "src/main.rs", "--crate-name", "hello_flate2", "--crate-type", "bin", "-g", "--out-dir", "/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug", "--emit=dep-info,link", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug", "-L", "dependency=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps", "--extern", "flate2=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/deps/libflate2-d719035eaa7c6a88.rlib", "-L", "native=/home/joachim/Desktop/projects/fractalide/fetchUrl/hello_flate2/target/debug/build/miniz-sys-60c8d67696f63a43/out"], [/* 105 vars */]) = 0
 
       ${rustc}/bin/rustc $src/main.rs --crate-type "bin" --emit=dep-info,link --crate-name main -L dependency=mylibs ${depsString} -L native= #flate2=${allCrates.flate2_0_2_14}/libflate2.rlib
@@ -84,7 +84,7 @@ rec {
 #       du -a
 #       /run/current-system/sw/bin/ldd ./main
       ./main
-      du -a 
+#       du -a 
       if [ -f foo.tar ]; then
         echo -e "---------\nSUCCESS: tar-example was executed successfully!   \n--------"
       else
