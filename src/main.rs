@@ -32,10 +32,19 @@ struct Dep{
 
 impl Decodable for Dep {
     fn decode<D: Decoder>(d: &mut D) -> Result<Dep, D::Error> {
-        d.read_struct("Dep", 4, |d| {
+        d.read_struct("Dep", 5, |d| {
             let name = try!(d.read_struct_field("name", 0, |d| { d.read_str() }));
-            let optional = try!(d.read_struct_field("optional", 1, |d| { d.read_bool() }));
-            let kind = try!(d.read_struct_field("kind", 2, |d| { d.read_str() }));
+            let optional = try!(d.read_struct_field("optional", 1, |d| { 
+                Ok( match d.read_bool(){
+                    Ok(opt) => opt,
+                    Err(_) => false,
+                })}));
+            let kind = try!(d.read_struct_field("kind", 2, |d| { 
+                Ok( match d.read_str(){
+                    Ok(opt) => opt,
+                    Err(_) => "".to_string(),
+                }) }));
+            
             let req = try!(d.read_struct_field("req", 3, |d| { d.read_str() }));
 
             let target = try!(d.read_struct_field("target", 4, |d| { 
@@ -265,6 +274,11 @@ fn main() {
                 }
 
                 if prev_version[0] < version[0] {
+                    let smal_version = "_".to_string() + &prev_version[0].to_string() + "_" + &prev_version[1].to_string();
+                    let package_name = prev.name.clone() + &smal_version;
+//                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
+                    write!(buffer, "\n  \"{}\" = {};",  package_name, prev.name.clone() + &full_version);
+
                     let smal_version = "_".to_string() + &prev_version[0].to_string();
                     let package_name = prev.name.clone() + &smal_version;
 //                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
