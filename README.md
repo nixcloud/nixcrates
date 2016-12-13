@@ -18,6 +18,9 @@ If you are using our index from `https://github.com/nixcloud/nix-crates-index.gi
 
         cd crates.io-index
         git pull
+        git rev-parse master
+        fc336466a7ede6f14ce427deb5a64c5d02d14be0
+
 
 2. use `nixcrates` to update it
 
@@ -26,10 +29,8 @@ If you are using our index from `https://github.com/nixcloud/nix-crates-index.gi
         rm -Rf *
         nixcrates ../crates.io-index/ ./
         git add *
-        
-        git rev-parse master
-        fc336466a7ede6f14ce427deb5a64c5d02d14be0
-        
+
+        # just use the rev from the crates.io-index below        
         git commit -m 'fc3364: new revision added'
 
 3. afterwards try to build your packages and eventually update `nix-crates-index/all-carg-packages.nix` to reflect dependency changes
