@@ -66,18 +66,101 @@ fn is_hidden(entry: &DirEntry) -> bool {
 
 //converts the version string into an array of u32s
 fn convert_version(version: &str) -> Vec<u32> {
-    return version.split(&['.'][..]).map(|s| match s.parse::<u32>(){ 
+    return version.split(&['.'][..]).map(|s| match s.parse::<u32>(){
                 Ok(x) => x,
                 Err(_) => 0_u32,
             }).collect();
 }
 
+//Parses one single crates.io file
+fn parseCrates(f: &File) -> BTreeMap<Vec<u32>,MyCrate>{
+  let mut all_versions = BTreeMap::new();
+  let mut reader = BufReader::new(f);
+  //parse all crates
+  for line in reader.lines(){
+      let l = line.unwrap();
+
+      let mut next_crate: MyCrate = match json::decode(&l){
+          Ok(x) => x,
+          Err(err) => continue,
+      };
+
+      if next_crate.vers.contains("-"){
+          //skip beta versions
+          continue;
+      }
+
+      //remove everything after an `+` since those vallues can be ignored for versioning
+      let prep_for_split = next_crate.vers.clone();
+      let split: Vec<&str> = prep_for_split.split("+").collect();
+      let v: &str = split[0];
+      next_crate.vers = v.to_string();
+
+      let version = convert_version(&next_crate.vers);
+      //check if this is the first valid version else it will be discarded
+      all_versions.entry(version).or_insert(next_crate);
+  }
+  return all_versions;
+}
+
+//convert a vector of deps into a string and resolve the given versions.
+fn create_dep_string(deps: &Vec<Dep>) -> String{
+  let mut dep_str = "".to_string();
+  for d in deps {
+      //FIXME this breaks things for windows ans macos
+      if !d.optional && d.kind != "dev" && !d.target.contains("windows") && !d.target.contains("macos"){
+          if d.req.contains("<") || d.req.contains("=") || d.req.contains(">") || d.req.contains("*"){
+              //Cant resolve use newest version
+              dep_str = dep_str + " " + &(d.name);
+              continue;
+          }
+          let mut x: Vec<&str> = d.req.split(".").collect();
+
+          if x.len() > 3 {
+              //Cant resolve use newest version
+              dep_str = dep_str + " " + &(d.name);
+              continue;
+          }
+          if d.req.starts_with("~") {
+              if x.len() == 1 {
+                  dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("~");
+              }else {
+                  dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("~") + "_" + x[1];
+              }
+          }else if d.req.starts_with("^") {
+              dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("^");
+              x.remove(0);
+              for i in x {
+                  dep_str = dep_str + "_" + i;
+                  if i != "0" {
+                      break;
+                  }
+              }
+
+          }else {
+              if x.len() > 3 {
+                  //Cant resolve use newest version
+                  dep_str = dep_str + " " + &(d.name);
+              }else{
+                  dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name);
+                  for i in x {
+                      dep_str = dep_str + "_" + i;
+                  }
+              }
+          }
+      }
+  }
+  return dep_str;
+}
+
+
 fn main() {
+    //check arguments
     let args: Vec<_> = env::args().collect();
     if args.len() < 3 {
         println!("The first argument should be the path of the crates.io-index");
         println!("The second argument should be the path for the nixcrates index");
-        return; 
+        return;
     }else{
         println!("Inputh path is {}", args[1]);
         println!("Output path is {}", args[2]);
@@ -101,7 +184,7 @@ fn main() {
     write!(packages, "\n{{");
     write!(packages, "\n  allCrates = self: super: rec {{");
 
-    //traverse true the crates.io index
+    //traverse through the crates.io index
     for entry in WalkDir::new(input).into_iter().filter_entry(|e| !is_hidden(e)) {
         let entry = entry.unwrap();
         if entry.file_type().is_dir(){
@@ -110,72 +193,37 @@ fn main() {
             fs::create_dir_all(new_path);
         }else if entry.file_type().is_file(){
             //create the equivalent nix file for the nix index
-            
+
             //check if the file is the config.json
-            if entry.path().to_str().unwrap().ends_with("config.json") || 
+            if entry.path().to_str().unwrap().ends_with("config.json") ||
                entry.path().to_str().unwrap().contains(".git") ||
                entry.path().to_str().unwrap().ends_with(".nix"){
                 continue;
             }
-
             //Open file
             let f = match File::open(entry.path()){
                 Ok(x) => x,
                 Err(_) => continue,
             };
             println!("{}", entry.path().to_str().unwrap());
-            
-            let mut reader = BufReader::new(&f);
+
 
             //btree is used to store all versions (sorted).
-            let mut all_versions = BTreeMap::new();
-
-            let new_sub_path = (entry.path().to_str().unwrap().trim_left_matches(input)).to_string() + ".nix";
-            let new_path = output.to_string() + &new_sub_path;    
-            let mut buffer = File::create(new_path).unwrap();
-
-            write!(buffer, "#DON'T EDIT. AUTOGENERATED FILE");
-            write!(buffer, "\n{{buildCratesLib, allCrates}}:");
-            write!(buffer, "\nrec {{");
-
-            let mut newest_crate = MyCrate{
-                name: "".to_string(),
-                vers: "".to_string(),
-                deps: Vec::new(),
-                cksum: "".to_string(),
-            };
-
-            //convert all crates to nix
-            for line in reader.lines(){
-                let l = line.unwrap();
-
-                let mut next_crate: MyCrate = match json::decode(&l){
-                    Ok(x) => x,
-                    Err(err) => continue,
-                };
-
-                if next_crate.vers.contains("-"){
-                    //skip beta versions
-                    continue;
-                }
-
-                //remove everything after an + since those vallues can be ignored for versioning
-                let prep_for_split = next_crate.vers.clone();
-                let split: Vec<&str> = prep_for_split.split("+").collect();
-                let v: &str = split[0];
-                next_crate.vers = v.to_string();
-
-                //check if this is the newest version
-                let version = convert_version(&next_crate.vers);
-                //check if this is the first valid version
-                all_versions.entry(version).or_insert(next_crate);
-    
-            }
+            let mut all_versions = parseCrates(&f);
 
             if all_versions.len() == 0{
                 println!("WARNING: empty package");
                 continue;
             }
+
+            let new_sub_path = (entry.path().to_str().unwrap().trim_left_matches(input)).to_string() + ".nix";
+            let new_path = output.to_string() + &new_sub_path;
+
+            let mut buffer = File::create(new_path).unwrap();
+
+            write!(buffer, "#DON'T EDIT. AUTOGENERATED FILE");
+            write!(buffer, "\n{{buildCratesLib, allCrates}}:");
+            write!(buffer, "\nrec {{");
 
             let (first_key, first_value) = all_versions.iter().next().unwrap();
             let mut prev = first_value.clone();
@@ -187,64 +235,8 @@ fn main() {
             for (version, c) in &all_versions {
                 let next_crate = c.clone();
                 //create a string containing all deps
-                let mut dep_str = "".to_string();
-                for d in next_crate.deps {
-                    //FIXME this breaks things for windows ans macos
-                    if !d.optional && d.kind != "dev" && !d.target.contains("windows") && !d.target.contains("macos"){
+                let dep_str = create_dep_string(&next_crate.deps);
 
-//                    dep_str = dep_str + " " + &(d.name);
-
-                        if d.req.contains("<") || d.req.contains("=") || d.req.contains(">") || d.req.contains("*"){                     
-                            //Cant resolve use newest version
-                            dep_str = dep_str + " " + &(d.name);
-                            continue;
-                        }
-                        let mut x: Vec<&str> = d.req.split(".").collect(); 
-                        /*{
-                            Ok (x) => x,
-                            Err(_) => { 
-                                //Cant resolve use newest version
-                                dep_str = dep_str + " " + &(d.name);
-                                continue;
-                            },
-                        };*/
-
-                        if x.len() > 3 {
-                            //Cant resolve use newest version
-                            dep_str = dep_str + " " + &(d.name);
-                            continue;
-                        }
-                        if d.req.starts_with("~") {
-                            if x.len() == 1 {
-                                dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("~");
-                            }else {
-                                dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("~") + "_" + x[1];
-                            }
-                        }else if d.req.starts_with("^") {
-                            dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name) + "_" + x[0].trim_left_matches("^");
-                            x.remove(0);                            
-                            for i in x {
-                                dep_str = dep_str + "_" + i;
-                                if i != "0" {
-                                    break;
-                                }
-                            }
-
-                        }else {
-                            if x.len() > 3 {
-                                //Cant resolve use newest version
-                                dep_str = dep_str + " " + &(d.name);
-                            }else{
-                                dep_str = dep_str + " all__" + &(d.name) + "." +  &(d.name);
-                                for i in x {
-                                    dep_str = dep_str + "_" + i;
-                                }
-                            }
-                        }
-                    }
-                }
-
-    
                 let full_version = "_".to_string() + &next_crate.vers.replace(".", "_");
                 let package_name = next_crate.name.clone() + &full_version;
                 let data = HashBuilder::new()
@@ -258,7 +250,7 @@ fn main() {
                 let mut rv = Cursor::new(Vec::new());
                 data.render(template, &mut rv).unwrap();
                 let res = String::from_utf8(rv.into_inner()).unwrap();
-     
+
                 write!(buffer, "{}", res);
                 //add entry to the generated-crates.nix
 //                write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, package_name);
@@ -270,7 +262,7 @@ fn main() {
 //                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
                     write!(buffer, "\n  \"{}\" = {};",  package_name, prev.name.clone() + &full_version);
                 }
-                
+
                 if prev_version[0] < version[0] {
                     let smal_version = "_".to_string() + &prev_version[0].to_string();
                     let package_name = prev.name.clone() + &smal_version;
