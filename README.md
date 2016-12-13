@@ -4,6 +4,8 @@ A drop-in replacement for `cargo` which yet uses crates.io index.
 **Warning**: crates.io-index uses 'semantic versioning' (see http://semver.org/) and we don't support this here. 'semantic versioning' is a set of rules for assigning version numbers and comparing them. Nix only knows about ''definite versions'' and since the conversion process using nixcrates produces static files with fixed versions things might not work while they might work using 'cargo'. 
 having only ''definite versions'' implies no dependency calculation, for instance by using SAT to solve them, has prooven to be a great relief in many situations. however, it would require a **cargo2nix** tool to have that.
 
+**Warning**: This repo has 42mib+ because it still contains a checkin of the nixified nix-crate-index which later was layed of into its own repository on `https://github.com/nixcloud/nix-crates-index.git`.
+
 # Usage
 
 We describe an initial procedure to keep old revisions around.
