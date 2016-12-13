@@ -32,16 +32,17 @@ struct Dep{
 
 impl Decodable for Dep {
     fn decode<D: Decoder>(d: &mut D) -> Result<Dep, D::Error> {
-        d.read_struct("Dep", 5, |d| {
+        d.read_struct("Dep", 4, |d| {
             let name = try!(d.read_struct_field("name", 0, |d| { d.read_str() }));
             let optional = try!(d.read_struct_field("optional", 1, |d| { d.read_bool() }));
             let kind = try!(d.read_struct_field("kind", 2, |d| { d.read_str() }));
             let req = try!(d.read_struct_field("req", 3, |d| { d.read_str() }));
 
-            let target = match d.read_struct_field("target", 4, |d| { d.read_nil() }){
-                Ok(opt) => "".to_string(),
-                Err(_) => try!(d.read_struct_field("target", 4, |d| { d.read_str() }))
-            };
+            let target = try!(d.read_struct_field("target", 4, |d| { 
+                 Ok(match d.read_str() {
+                    Ok(opt) => opt,
+                    Err(_) => "".to_string(),
+                })}));
 
             let ret = Dep{name: name, optional: optional, kind: kind, target: target, req: req };
             return Ok(ret);
@@ -82,7 +83,7 @@ fn parseCrates(f: &File) -> BTreeMap<Vec<u32>,MyCrate>{
 
       let mut next_crate: MyCrate = match json::decode(&l){
           Ok(x) => x,
-          Err(err) => continue,
+          Err(err) => { println!("ERROR while parsing a crate: {}", err); continue} ,
       };
 
       if next_crate.vers.contains("-"){
