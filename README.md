@@ -59,7 +59,9 @@ However here is a constructed case that would fail:
 
 For example your project has 2 dependencies {dep_a} and {dep_b}.
 Lets assume:
+
     * `{dep_a}` depends on `{dep_c}` with 0.1.1 <= version <= 0.2.0
     * `{dep_b}` depends on `{dep_c}` with 0.0.1 <= version <= 0.1.2
 
 Now our repo would compile `dep_a` with `dep_c_0_2_0` and `dep_b` with `dep_c_0_1_2`. This is a problem as soon as `{dep_a}` as well as `{dep_b}` are exposing types from `{dep_c}` in their interfaces.
+
