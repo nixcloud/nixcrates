@@ -95,9 +95,15 @@ Now our repo would compile `dep_a` with `dep_c_0_2_0` and `dep_b` with `dep_c_0_
 
 ### Not supported stuff
 
+#### Bundled C-code
+
 The `flate2-example` uses `miniz-sys` which uses `bundled c code` that is something we don't support yet. To see the error:
 
     nix-build -I nixpkgs=/home/joachim/Desktop/projects/nixos/nixpkgs -A allCrates.miniz-sys
+
+#### Tests
+
+Crates come with `tests` but we didn't have time to implement even though we would have loved to do that. Building `crates` with `tests` requires `dev-dependencies` to be around. We currently just remove them because they caused a lot `cyclic dependencies` which `Nix` (and even `cargo`) can't handle.
 
 ### Dependencies
 
