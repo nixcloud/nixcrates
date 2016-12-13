@@ -10,7 +10,7 @@ Having only ''definite versions'' implies no dependency calculation, for instanc
 
 We describe an initial procedure to keep old revisions around.
 
-## Updating 
+## Iterative update 
 
 If you are using our index from `https://github.com/nixcloud/nix-crates-index.git` then you need to do this:
 
@@ -68,7 +68,7 @@ Example targets:
 # How it works
 We are parsing the json files of the crates.io repository and translating them into nix files. Considering dependencies we are currently only supporting versening via `~` and `^` as well as single versions. If anything else is used we are switching to the newest version. In case of `^` and `~` we are using the highest allowed version.
 
-## how do versions look like in the created 
+## How do versions look like in the created 
 `{package_name}` is pointing on the newest version.
 `all__{package_name}` contains a set of all versions.
 
