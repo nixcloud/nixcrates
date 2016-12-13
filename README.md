@@ -16,25 +16,25 @@ If you are using our index from `https://github.com/nixcloud/nix-crates-index.gi
 
 1. update the crates.io-index repository:
 
-    cd crates.io-index
-    git pull
+        cd crates.io-index
+        git pull
 
 2. use `nixcrates` to update it
 
-    cd nix-crates-index/
-    # remove all files (nixcrates would not do that for us!)
-    rm -Rf *
-    nixcrates ../crates.io-index/ ./
-    git add *
-    
-    git rev-parse master
-    fc336466a7ede6f14ce427deb5a64c5d02d14be0
-    
-    git commit -m 'fc3364: new revision added'
+        cd nix-crates-index/
+        # remove all files (nixcrates would not do that for us!)
+        rm -Rf *
+        nixcrates ../crates.io-index/ ./
+        git add *
+        
+        git rev-parse master
+        fc336466a7ede6f14ce427deb5a64c5d02d14be0
+        
+        git commit -m 'fc3364: new revision added'
 
 3. afterwards try to build your packages and eventually update `nix-crates-index/all-carg-packages.nix` to reflect dependency changes
 
-    nix-build -A allTargets
+        nix-build -A allTargets
 
 ## Initialization
 
