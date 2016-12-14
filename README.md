@@ -61,6 +61,7 @@ Currently we use `rustc nightly` from most recent `nipxkgs master`!
 Example targets:
 
     git clone https://github.com/nixcloud/nixcrates.git
+    cd nixcrates
     nix-build default.nix -A nixcrates
     nix-build default.nix -A allTargets
     nix-build default.nix -A allCrates.rustache
