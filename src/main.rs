@@ -95,20 +95,22 @@ fn parseCrates(f: &File) -> BTreeMap<Vec<u32>,MyCrate>{
           Err(err) => { println!("ERROR while parsing a crate: {}", err); continue} ,
       };
 
-      if next_crate.vers.contains("-"){
+//      if next_crate.vers.contains("-"){
           //skip beta versions
-          continue;
-      }
+//          continue;
+//      }
 
       //remove everything after an `+` since those vallues can be ignored for versioning
+      //remove everything after an `-` those versions are unstable pre-release versions. 
+      //we allow them but only ceep the latest.
       let prep_for_split = next_crate.vers.clone();
-      let split: Vec<&str> = prep_for_split.split("+").collect();
+      let split: Vec<&str> = prep_for_split.split(&['+', '-'][..]).collect();
       let v: &str = split[0];
       next_crate.vers = v.to_string();
 
       let version = convert_version(&next_crate.vers);
-      //check if this is the first valid version else it will be discarded
-      all_versions.entry(version).or_insert(next_crate);
+      //insert the latest version, discard the previous value (if there is one)
+      all_versions.insert(version, next_crate);
   }
   return all_versions;
 }
@@ -266,12 +268,6 @@ fn main() {
 //                write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, package_name);
 
                 let full_version = "_".to_string() + &prev_version[0].to_string() + "_" + &prev_version[1].to_string() + "_" + &prev_version[2].to_string();
-                if prev_version[1] < version[1] {
-                    let smal_version = "_".to_string() + &prev_version[0].to_string() + "_" + &prev_version[1].to_string();
-                    let package_name = prev.name.clone() + &smal_version;
-//                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
-                    write!(buffer, "\n  \"{}\" = {};",  package_name, prev.name.clone() + &full_version);
-                }
 
                 if prev_version[0] < version[0] {
                     let smal_version = "_".to_string() + &prev_version[0].to_string() + "_" + &prev_version[1].to_string();
@@ -283,7 +279,13 @@ fn main() {
                     let package_name = prev.name.clone() + &smal_version;
 //                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
                     write!(buffer, "\n  \"{}\" = {};",  package_name, prev.name.clone() + &full_version);
+                }else if prev_version[1] < version[1] {
+                    let smal_version = "_".to_string() + &prev_version[0].to_string() + "_" + &prev_version[1].to_string();
+                    let package_name = prev.name.clone() + &smal_version;
+//                    write!(packages, "\n\"{}\" = all__{}.\"{}\";",  package_name, name, prev.name.clone() + &full_version);
+                    write!(buffer, "\n  \"{}\" = {};",  package_name, prev.name.clone() + &full_version);
                 }
+
 
                 prev_version = version.clone();
                 prev = c.clone();
